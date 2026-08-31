@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  ::selection {
+    background-color: rgba(139, 92, 246, 0.4); /* Violet-500 with opacity */
+    color: #ffffff;
+  }
+
+  /* Fallback for Mozilla */
+  ::-moz-selection {
+    background-color: rgba(139, 92, 246, 0.4);
+    color: #ffffff;
+  }
+
+  body {
+    background-color: #141219;
+    color: #e6e0eb;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Technical Dot Grid Motif */
+.bg-dot-grid {
+  background-image: radial-gradient(rgba(248, 250, 252, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #141219;
+}
+::-webkit-scrollbar-thumb {
+  background: #36333b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #948e9d;
+}

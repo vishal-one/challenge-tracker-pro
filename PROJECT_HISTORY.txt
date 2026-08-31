@@ -1,0 +1,567 @@
+================================================================================
+CHALLENGE TRACKER PRO - PROJECT HISTORY LOG
+================================================================================
+Created: 2026-08-20
+
+[2026-08-20 14:37] Step 1: Project Initialization
+- Extracted design system specifications from Google Stitch MCP project URL:
+  https://stitch.withgoogle.com/projects/3910634810608540347
+- Scaffolded React 18 + TypeScript + Vite project using `create-vite@latest`.
+- Design System Specs ("Lumen & Logic"):
+  * Primary Accent: Electric Lime (#C3F400)
+  * Secondary Accent: Amber (#FE9800)
+  * Foundation: Deep Charcoal (#121317), Dark Surface Cards (#1F1F24)
+  * Typography: JetBrains Mono (Technical/Data/Headers/Inputs), Inter (Prose/Body)
+  * Micro-aesthetics: Dot grid background motif (`bg-dot-grid`), 1px white/10 borders, status badges, monospace fields.
+
+[2026-08-20 14:41] Step 2: Dependency Installation
+- Installed core libraries:
+  * `@supabase/supabase-js` for Supabase authentication and PostgreSQL database queries.
+  * `@tanstack/react-query` for data fetching, caching, and optimistic UI mutations.
+  * `react-router-dom` for client-side routing.
+  * `lucide-react` for technical iconography.
+  * `react-hook-form` + `zod` + `@hookform/resolvers` for schema-validated forms.
+  * `@radix-ui/react-dialog`, `@radix-ui/react-dropdown-menu`, `@radix-ui/react-tabs`, `@radix-ui/react-select`, `@radix-ui/react-avatar` for accessible headless UI primitives.
+  * `marked` for markdown rendering support in challenge specs.
+  * `tailwindcss`, `postcss`, `autoprefixer` for utility styling.
+
+[2026-08-20 14:42] Step 3: Expanded Database Schema Migration Script
+- Generated `.sql` migration file at `supabase/migrations/20260820000000_expanded_schema.sql`:
+  * Enums: `app_role` ('admin', 'user'), `account_status` ('active', 'inactive'), `progress_status` ('incomplete', 'ongoing', 'complete').
+  * Tables: `profiles`, `challenges`, `assignments`, `notifications`.
+  * Security: Enabled RLS on all 4 tables with role-based policies (Users access own data; Admins have full SELECT & mutation access).
+  * Stored Procedure: `assign_challenge_users` for bulk-assigning challenges to active users.
+  * Triggers: `on_auth_user_created` (auto profile creation) & `on_assignment_created` (auto notification creation).
+
+[2026-08-20 14:43] Step 4: Core Infrastructure & State Architecture
+- Configured Tailwind CSS with custom colors, fonts, shadow glows, and dot grid background in `tailwind.config.js` and `src/index.css`.
+- Added Google Fonts (JetBrains Mono & Inter) in `index.html`.
+- Created TypeScript schema interfaces in `src/types/database.ts`.
+- Implemented `AuthContext.tsx` and `useAuth.ts` supporting live Supabase Auth and instant interactive Demo mode role switching.
+- Implemented TanStack Query custom hooks: `useChallenges`, `useCohortMetrics`, `useAssignments`, `useAssignmentDetail`, and `useNotifications`.
+- Created mock dataset in `src/lib/mockData.ts` for immediate fallback testing.
+
+[2026-08-20 14:44] Step 5: Design Tokens & Reusable Component Suite
+- Created accessible UI components:
+  * `Button.tsx`: Electric Lime primary, Amber secondary, Ghost, and Danger variants.
+  * `Input.tsx`: JetBrains Mono input with glow border on focus.
+  * `Badge.tsx`: `StatusBadge` (Incomplete, pulsing Amber Ongoing, Electric Lime Complete) and `DifficultyBadge` (Beginner, Intermediate, Advanced, Hardcore).
+  * `Card.tsx`: Dark surface card with ghost borders and hover glow.
+  * `Modal.tsx`: Accessible Radix UI Dialog primitive wrapper.
+  * `MarkdownRenderer.tsx`: Markdown spec parser.
+
+[2026-08-20 14:45] Step 6: Layout & Page Routes Implementation
+- Built application layout shell:
+  * `Header.tsx`: Dot-grid header with live database indicator, demo role switcher (Admin / User), notification counter, and user profile pill.
+  * `Sidebar.tsx`: Role-aware navigation links.
+  * `Layout.tsx`: Background dot-grid wrapper.
+- Built interactive page routes:
+  * `/login`: Supabase Auth & Demo mode sign-in/sign-up page with role selector.
+  * `/admin/dashboard`: Cohort metrics cards, challenge repository with soft-archive toggles, and active user directory.
+  * `/admin/challenges/new`: Zod-validated form with live markdown preview tab and active user bulk-assignment checkboxes.
+  * `/my-challenges`: User dashboard featuring responsive data table of assigned tasks with status filter buttons ('all', 'incomplete', 'ongoing', 'complete').
+  * `/my-challenges/:id`: Single challenge detail view rendering full markdown specs, external link button, and submission form for `linkedin_url` and `github_url` proof URLs.
+  * `/notifications`: Dedicated panel mapping unread/read alerts with mark as read actions.
+  * `/profile` & `/account`: Settings pages for display name, avatar preview, and auth password updates.
+  * `App.tsx` & `main.tsx`: TanStack Query provider and client router configuration.
+
+[2026-08-20 15:35] Step 7: Re-fetched Design Tokens & Applied Stitch Soft Violet Aesthetic
+- Re-fetched latest UI tokens, colors, and layout guidelines from Stitch MCP project 3910634810608540347 (Design System Version 3: Soft Violet / Dusty Lavender / Muted Gold).
+- Stripped out the old "Lumen & Logic" dark mode palette (Electric Lime `#C3F400` / Amber `#FE9800`) across all component styles and pages.
+- Updated `tailwind.config.js` and `src/index.css` with:
+  * Primary Accent: Soft Violet (`#A78BF9` / `#8065D0`)
+  * Secondary Accent: Dusty Lavender (`#CCBFF0` / `#7C719D`)
+  * Highlight Accent: Muted Gold (`#DBC839` / `#AF9E00`)
+  * Surface Background: `#141219` base dark void, `#211E26` container, `#0F0D14` lowest layer.
+  * Shadow Glows: `violet-glow` and `gold-glow`.
+- Updated all UI component files (`Button.tsx`, `Badge.tsx`, `Card.tsx`, `Input.tsx`, `Modal.tsx`, `MarkdownRenderer.tsx`), header, sidebar, dashboards, forms, and settings pages.
+
+[2026-08-20 15:45] Step 8: Disabled Interactive Demo Mode & Enforced Live Supabase Auth + Protected Routing
+- Disabled Interactive Demo mode in `AuthContext.tsx` (`isDemoMode = false`) and removed pre-authenticated default mock user.
+- Enforced live Supabase authentication session listeners (`getSession` and `onAuthStateChange`).
+- Upon authentication, automatically query the Supabase `profiles` table to retrieve user role and profile metadata.
+- Implemented `ProtectedRoute` and `AdminRoute` in `App.tsx` to enforce booting directly to live Supabase `/login` when unauthenticated.
+- Preserved role-based routing (`/admin/dashboard` for admins vs `/my-challenges` for standard users).
+
+[2026-08-20 16:01] Step 9: Removed Frontend Role Switcher & Added Google OAuth Integration
+- Completely removed the "SELECT OPERATING ROLE" (Admin/User) toggle button group from `Login.tsx`.
+- All frontend sign-up and sign-in operations now default to standard `'user'` roles, relying on Supabase database defaults / role policies.
+- Integrated Google OAuth authentication in `AuthContext.tsx` via `supabase.auth.signInWithOAuth({ provider: 'google' })`.
+- Added a prominent "Sign in with Google" dark ghost button in `Login.tsx` above an "OR CONTINUE WITH EMAIL" divider line, styled matching the Soft Violet theme.
+- Verified production build via `npm run build` (`tsc && vite build`) with zero compilation or bundle errors.
+
+[2026-08-20 19:50] Step 10: Production Hardening — Removed All Mock Data & Enforced Supabase-Only Architecture
+- Deleted `src/lib/mockData.ts` entirely (all mock profiles, challenges, assignments, notifications).
+- Rewrote `src/lib/supabase.ts`: removed `isSupabaseConfigured` export, added fail-fast `throw` on missing env vars, exported guaranteed non-null `supabase` client.
+- Rewrote `AuthContext.tsx`:
+  * Removed `INITIAL_MOCK_PROFILES` import and all `isSupabaseConfigured` branching.
+  * Removed `requestedRole` parameter from `signIn` (was defaulting to `'admin'` — security risk).
+  * Removed `requestedRole` parameter from `signUp` and deleted the client-side `profiles.upsert()` block (now relies entirely on Postgres `on_auth_user_created` trigger).
+  * Refactored `updateProfile` to perform Supabase update *first* and only update local state on success.
+- Rewrote `useAssignments.ts`:
+  * Removed all `getStoredAssignments`/`getStoredChallenges` imports and localStorage fallback logic.
+  * Fixed `updateSubmission.onSuccess` to also invalidate `['assignment-detail', variables.assignmentId]` for immediate detail view refresh.
+  * Added `onError` callback for submission error logging.
+  * Fixed `useAssignmentDetail` to search strictly by assignment ID (removed `|| a.challenge_id` fallback).
+- Rewrote `useChallenges.ts`:
+  * Removed all mock data imports, `LOCAL_STORAGE_*` constants, and `getStored*`/`saveStored*` helpers.
+  * Removed all `else { ... }` local storage fallback branches from `useChallenges`, `createChallenge`, `toggleArchive`, and `useCohortMetrics`.
+  * Refactored `useCohortMetrics` to use efficient `count: 'exact', head: true` queries instead of downloading assignment rows.
+  * Added error checking to `useCohortMetrics` Promise.all results.
+- Rewrote `useNotifications.ts`:
+  * Removed all mock/localStorage fallback logic.
+  * Added `.eq('user_id', user!.id)` ownership check on `markAsRead` mutation to prevent cross-user mutations.
+- Updated `Account.tsx`: removed `isSupabaseConfigured` import and conditional check.
+- Updated `Login.tsx`: removed trailing role parameter from `signIn`/`signUp` calls.
+- Verified production build: `npm run build` completed with 0 TypeScript errors, bundle size reduced ~8 KB (642.56 KB from 651.43 KB).
+
+[2026-08-20 19:52] Step 11: CreateChallenge & AdminDashboard Fixes — Domain Filtering, Error Handling, Direct Data Fetching
+- Updated `CreateChallenge.tsx`:
+  * Added `cohortMembers = allUsers.filter(u => u.role === 'user')` to only show standard users in the assignee picker (excludes admins).
+  * Replaced all `allUsers` references in `selectAllUsers`, length check, and `.map()` JSX with `cohortMembers`.
+  * Added `setError` to `useForm` destructuring.
+  * Wrapped `onSubmit` in `try/catch` with `setError('root', ...)` to gracefully surface mutation failures instead of unhandled promise rejections.
+- Updated `AdminDashboard.tsx`:
+  * Removed `const { allUsers } = useAuth()` dependency.
+  * Added direct `useQuery({ queryKey: ['cohort-members'], ... })` fetching all profiles from Supabase.
+  * Added `isMembersLoading` loading state for the cohort directory grid.
+  * Replaced all `allUsers` references with `cohortMembers`.
+- Verified production build: `npm run build` completed with 0 TypeScript errors (643.06 KB bundle).
+
+[2026-08-21 13:34] Step 12: ChallengeDetail — Conditional Proof URL Inputs & Strict URL Validation
+- Added two module-level regex constants above the component in `ChallengeDetail.tsx`:
+  * `GITHUB_REGEX` — enforces `https://github.com/<user>/<repo>` format.
+  * `LINKEDIN_REGEX` — accepts `/in/`, `/posts/`, and `/feed/update/` LinkedIn paths.
+- Added `requiresProof` derived boolean (`progressStatus === 'ongoing' || 'complete'`).
+- GitHub and LinkedIn URL inputs are now conditionally rendered only when `requiresProof` is true; they are hidden when status is 'Incomplete'.
+- `handleFormSubmit` validates both URLs against their respective regexes before calling `mutateAsync`, surfaces per-field error messages, and clears proof URLs from the DB when switching back to 'incomplete'.
+
+[2026-08-21 13:42] Step 13: Profile Page — Student-Specific Fields
+- Added four optional fields to the `Profile` interface in `src/types/database.ts`:
+  * `bio?: string`, `github_username?: string`, `linkedin_url?: string`, `institution?: string`
+- Rewrote `src/pages/Profile.tsx` with a two-card layout:
+  * Card 1 "Identity & Avatar" — existing display name field + live avatar preview (now also shows institution).
+  * Card 2 "Student Details" — bio textarea (280-char limit with live counter), GitHub username input (validated as bare username, not URL), LinkedIn URL input, institution input.
+- Single `updateProfile(...)` call saves all five fields on submit.
+- Inline validation: `GITHUB_USERNAME_REGEX` rejects full URLs; `LINKEDIN_PROFILE_REGEX` accepts /in/, /posts/, /feed/update/, /company/ paths.
+- Supabase SQL required: `ALTER TABLE profiles ADD COLUMN IF NOT EXISTS bio text, github_username text, linkedin_url text, institution text`.
+
+[2026-08-21 14:02] Step 14: Admin — Manage Cohorts & Review Submissions Pages
+- Updated `src/types/database.ts`:
+  * Added `ReviewStatus = 'pending' | 'changes_requested' | 'approved'` type.
+  * Added `review_status: ReviewStatus` and `mentor_feedback?: string` to `Assignment` interface.
+- Updated `src/hooks/useAssignments.ts` with two new admin hooks:
+  * `useAdminCohorts()` — fetches all `role='user'` profiles; exposes `removeFromCohort` mutation and `useUserAssignmentDetail(userId)` factory.
+  * `useAdminReviews()` — fetches `complete + unverified` assignments joined with profiles and challenges; exposes `submitReview` mutation.
+- Created `src/pages/admin/AdminCohorts.tsx` (`/admin/cohorts`):
+  * Searchable student table (name, institution, status, cohort badge).
+  * Click row → Radix Dialog modal showing bio, GitHub/LinkedIn links, full assignments sub-table, and "Remove from Cohort" danger button.
+- Created `src/pages/admin/AdminReviews.tsx` (`/admin/reviews`):
+  * Per-card review queue with proof links, mentor feedback textarea, "Request Changes" and "Approve" buttons.
+  * Empty-state illustration when queue is empty.
+- Updated `src/App.tsx`: added imports and `<AdminRoute>`-wrapped routes for `/admin/cohorts` and `/admin/reviews`.
+- Supabase SQL required: `ALTER TABLE assignments ADD COLUMN IF NOT EXISTS review_status text NOT NULL DEFAULT 'pending' CHECK (...), mentor_feedback text`.
+
+[2026-08-21 14:11] Step 15: Admin — Manage Challenges & Edit Challenge Pages
+- Created `src/pages/admin/AdminManageChallenges.tsx` (`/admin/challenges`):
+  * 3-metric header row: Total / Active / Archived challenge counts.
+  * Searchable table with Title, Difficulty badge, Status, Published date.
+  * "Edit" button navigates to `/admin/challenges/edit/:id`.
+  * "Delete" button calls `supabase.from('challenges').delete().eq('id', id)` with browser confirm dialog; invalidates query cache on success.
+- Created `src/pages/admin/EditChallenge.tsx` (`/admin/challenges/edit/:id`):
+  * Mirrors `CreateChallenge.tsx` form layout (title, difficulty, resource URL, markdown editor with preview tab).
+  * `useParams()` extracts `:id`; `useEffect` fetches existing record and calls `reset()` to pre-populate the form.
+  * Submit calls `supabase.from('challenges').update(...)` and invalidates `all-challenges-admin`, `challenges`, and `metrics` caches.
+  * Dedicated loading and error states while fetching the record.
+- Updated `src/App.tsx`: added routes for `/admin/challenges` and `/admin/challenges/edit/:id` (both `<AdminRoute>`-wrapped).
+- Updated `src/components/layout/Sidebar.tsx`: changed admin link from "Create Challenge" (`/admin/challenges/new`) to "Manage Challenges" (`/admin/challenges`).
+
+[2026-08-21 14:20] Step 16: Sidebar Role Leak Fix & AdminReviews Data Fetching Fix
+- Fixed `src/components/layout/Sidebar.tsx`:
+  * Wrapped the "Challenges / My Challenges" section in `{role === 'user' && (...)}` so admins no longer see the student-facing challenge link.
+- Rewrote `src/pages/admin/AdminReviews.tsx`:
+  * Replaced React Query hook (`useAdminReviews`) with direct `useState` + `useEffect` + `supabase` fetching.
+  * Fixed Supabase join syntax: uses `profiles:user_id (...)` and `challenges:challenge_id (...)` explicit foreign-key aliases that PostgREST actually resolves.
+  * Added error banner with Retry button, and a Refresh button on the queue header.
+  * Per-card inline error message if approve/request-changes Supabase call fails.
+  * `ReviewCard` now reads `submission.profiles` and `submission.challenges` (matching real response shape).
+
+[2026-08-21 14:36] Step 17: Live Video Call — Database Schema Prep
+- Created `supabase/migrations/20260822000000_video_notifications.sql`:
+  * `ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'system' NOT NULL` — distinguishes system alerts from actionable video_call notifications.
+  * `ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS action_url TEXT` — stores the Jitsi Meet room URL that students click to join.
+  * Enables Supabase Realtime on the notifications table via `DROP/CREATE PUBLICATION supabase_realtime FOR TABLE public.notifications` so the frontend can subscribe to INSERT events.
+- Updated `src/types/database.ts`: added `type: 'system' | 'video_call' | string` and `action_url?: string` to the `Notification` interface.
+
+[2026-08-21 14:39] Step 18: Live Video Call — Admin Trigger (Start Live Class)
+- Updated `src/pages/admin/AdminCohorts.tsx`:
+  * Added `Video` icon import from lucide-react.
+  * Added `startingCallId` state (tracks which cohortId is currently launching a call).
+  * Added `handleStartCall(cohortId)` function:
+    - Generates unique Jitsi room URL: `https://meet.jit.si/CTP-Cohort-{cohortId}-{Date.now()}`.
+    - Fetches all profiles with matching `cohort_id` from Supabase.
+    - Bulk-inserts `video_call` notifications with `action_url` for every cohort member.
+    - Opens the Jitsi room in a new browser tab.
+  * Table: added "Live Class" button in Actions column for enrolled students (`cohort_id != null`); cell uses `e.stopPropagation()` to prevent opening the student modal.
+  * Student detail modal: added "Start Live Class" button in footer alongside "Remove from Cohort"; shows "Not in a cohort" label when user has no cohort.
+
+[2026-08-21 14:41] Step 19: Live Video Call — Student Realtime Listener & Toast UI
+- Created `src/hooks/useLiveCallListener.tsx`:
+  * `LiveCallToast` component subscribes to Supabase Realtime `INSERT` events on `public.notifications` filtered to `user_id=eq.{user.id}`.
+  * On receiving a notification with `type === 'video_call'`, saves `message` and `action_url` to local state.
+  * Renders a fixed `bottom-6 right-6 z-[9999]` toast with:
+    - Animated pulsing violet gradient accent bar.
+    - Pulsing Video icon + "Live Session Started" heading.
+    - Notification message text.
+    - "Join Call" button — opens `action_url` in new tab and dismisses toast.
+    - "Dismiss" button — clears state without joining.
+  * Channel is cleaned up via `supabase.removeChannel(channel)` on unmount or user change.
+- Updated `src/components/layout/Layout.tsx`: imported `LiveCallToast` and rendered it outside `<main>` inside the root wrapper so it persists across all page navigations.
+
+[2026-08-21 14:50] Step 20: Live Video Call — Global Admin Trigger & Broadcast All Students
+- Updated `src/pages/admin/AdminCohorts.tsx`:
+  * Added global "Start Live Class" button in the page header.
+  * Replaced cohort-restricted `handleStartCall` with `handleStartGlobalCall` to query all profiles where `role === 'user'`.
+  * Generates global Jitsi room URL (`https://meet.jit.si/CTP-LiveClass-${Date.now()}`).
+  * Bulk-inserts `video_call` notification records for all standard student users to dispatch Realtime notifications simultaneously.
+  * Opens Jitsi Meet room in a new browser tab for the Admin.
+  * Updated Student detail modal and row buttons to hook into `handleStartGlobalCall`.
+
+[2026-08-21 21:37] Step 21: Mixed Challenge Types — Database Migration & Types
+- Created new Supabase migration: `supabase/migrations/20260822010000_coding_challenges.sql`:
+  * Added `is_coding_challenge BOOLEAN DEFAULT FALSE NOT NULL` column to `public.challenges` table.
+  * Added `submitted_code TEXT` column to `public.assignments` table.
+- Updated `src/types/database.ts`:
+  * Added `is_coding_challenge: boolean` to the `Challenge` interface.
+  * Added `submitted_code?: string` to the `Assignment` interface.
+
+[2026-08-21 21:39] Step 22: Admin Flow — Coding Challenge Toggle
+- Updated `src/pages/admin/CreateChallenge.tsx`:
+  * Added `isCodingChallenge` state variable (default `false`).
+  * Included `is_coding_challenge: isCodingChallenge` in the `createChallenge.mutateAsync` payload.
+  * Added radio toggle UI ("Yes, use built-in code editor" / "No, require GitHub/LinkedIn URLs") below the Difficulty Level select.
+- Updated `src/pages/admin/EditChallenge.tsx`:
+  * Added `isCodingChallenge` state, hydrated from DB record (`data.is_coding_challenge ?? false`).
+  * Included `is_coding_challenge: isCodingChallenge` in the Supabase `.update()` payload.
+  * Added the same radio toggle UI as CreateChallenge.
+- Updated `src/hooks/useChallenges.ts`:
+  * Added `is_coding_challenge?: boolean` to the `createChallenge` mutation's input type.
+  * Included `is_coding_challenge` in the `.insert()` payload with `false` fallback.
+
+[2026-08-21 21:43] Step 23: Student View — In-Browser Code Editor & Execution
+- Installed `@monaco-editor/react` dependency for the Monaco code editor.
+- Created `src/components/workspace/CodeWorkspace.tsx`:
+  * Props: `assignmentId`, `initialCode`, `onSave` callback.
+  * Renders Monaco Editor with `vs-dark` theme, TypeScript language, JetBrains Mono font, no minimap.
+  * "Run Code" button: sends editor content to Piston API (`POST https://emkc.org/api/v2/piston/execute` with `language: "typescript"`, `version: "5.0.3"`). Displays stdout/stderr in an output panel below the editor.
+  * "Save & Submit Code" button: updates `submitted_code` column and sets `progress_status: 'complete'` + `completed_at` in the `assignments` table via Supabase.
+  * Includes loading states, error handling, and success toast animation.
+- Updated `src/pages/user/ChallengeDetail.tsx`:
+  * Imported `CodeWorkspace` component.
+  * Wrapped GitHub/LinkedIn URL inputs in `{requiresProof && !challenge.is_coding_challenge && (...)}`.
+  * Added `{challenge.is_coding_challenge && <CodeWorkspace ... />}` to render the code editor for coding challenges.
+  * Hidden the "Save & Submit Proof Artifacts" button for coding challenges (CodeWorkspace has its own submit flow).
+
+[2026-08-21 21:56] Step 24: CodeWorkspace — Multi-Language Support & Interaction Tracking
+- Updated `src/components/workspace/CodeWorkspace.tsx`:
+  * Added `LANGUAGE_OPTIONS` const array with configs for TypeScript, Python, Java, and C++ (maps 'cpp' → 'c++' for Piston API).
+  * Added `language` state defaulting to 'typescript', with a `<select>` dropdown in the toolbar next to the "CODE EDITOR" title.
+  * Monaco Editor now uses `language={language}` (reactive) instead of `defaultLanguage="typescript"`.
+  * Piston API payload now dynamically uses `langOption.pistonLang` and `langOption.pistonVersion`.
+  * Added two new props: `onInteract?: () => void` and `onSubmit?: (code: string) => void`.
+  * `onInteract()` is called inside Monaco's `onChange` event and at the start of `handleRunCode`.
+  * "Save & Submit Code" now delegates to `onSubmit(code)` instead of making Supabase calls directly — moved DB responsibility to the parent.
+  * Removed direct `supabase` import from CodeWorkspace (no longer needed).
+- Updated `src/pages/user/ChallengeDetail.tsx`:
+  * Passed `onInteract` callback (placeholder for analytics/auto-save).
+  * Passed `onSubmit` callback that performs the Supabase `.update()` for `submitted_code`, `progress_status`, `completed_at`.
+
+[2026-08-21 21:58] Step 25: Implicit Read-Only Status Badge — Remove Manual Milestone Selection
+- Updated `src/pages/user/ChallengeDetail.tsx`:
+  * Removed the manual "Current Milestone Status" three-button selector (Incomplete / Ongoing / Complete).
+  * Removed `progressStatus` state and `ProgressStatus` type import; removed `Clock` and `AlertCircle` icon imports.
+  * Added `hasInteracted` state (`false` by default).
+  * Added derived read-only `displayStatus` variable:
+    - `'COMPLETE'` if `assignment.progress_status === 'complete'`
+    - `'ONGOING / IN PROGRESS'` if `hasInteracted` is true (user typed in editor or ran code)
+    - `'INCOMPLETE'` otherwise
+  * Replaced the old `StatusBadge` in the header with a styled inline `<span>` using `displayStatus`.
+  * Replaced the milestone button grid with a single read-only "Current Status:" badge with color-coded styling.
+  * `requiresProof` now also triggers when `hasInteracted` is true.
+  * Form submit handler uses `hasInteracted ? 'ongoing' : assignment.progress_status` for the DB update.
+  * Wired `onInteract` callback to `setHasInteracted(true)` — status automatically transitions to ONGOING when the student types or runs code.
+
+[2026-08-21 22:03] Step 26: Piston API — Auth Header & Graceful Error Handling
+- Updated `src/components/workspace/CodeWorkspace.tsx` `handleRunCode`:
+  * Reads `VITE_PISTON_API_KEY` from `import.meta.env` and attaches `Authorization` header if present.
+  * Handles 401 status explicitly with a user-friendly message directing students to contact their mentor.
+  * Language/version mapping now inlined (replaces `LANGUAGE_OPTIONS` lookup for API call): maps 'cpp' → 'c++' for Piston.
+  * Improved output parsing: checks `data.run.output`, `data.run.stderr`, `data.run.stdout`, `data.message` in priority order.
+  * Network errors caught with a generic "Could not reach execution server" message instead of exposing raw error details.
+  * Shows "Running..." placeholder text immediately on click instead of clearing the output panel.
+
+[2026-08-21 22:22] Step 27: Execution Engine Migration — Piston → JDoodle REST API
+- Updated `src/components/workspace/CodeWorkspace.tsx` `handleRunCode`:
+  * Replaced Piston API (`emkc.org/api/v2/piston/execute`) with JDoodle API (`api.jdoodle.com/v1/execute`).
+  * Reads `VITE_JDOODLE_CLIENT_ID` and `VITE_JDOODLE_CLIENT_SECRET` from environment variables.
+  * Validates credentials are present before making the request; shows user-friendly error if missing.
+  * Uses `corsproxy.io` CORS proxy for local development (JDoodle doesn't support direct browser calls).
+  * Language mapping: TypeScript → 'nodejs', Python → 'python3', Java → 'java', C++ → 'cpp'.
+  * JDoodle payload format: `{ clientId, clientSecret, script, language, versionIndex: "0" }`.
+  * Output parsing: checks `data.output` → `data.error` → fallback "Executed successfully with no output."
+  * Graceful HTTP error handling: shows `API Error {status}` for non-OK responses.
+
+[2026-08-21 23:22] Step 28: CodeWorkspace — Layout Optimizations & Auto-Scroll Terminal
+- Updated `src/components/workspace/CodeWorkspace.tsx`:
+  * Added `outputRef = useRef<HTMLDivElement>(null)` for the terminal container.
+  * In `handleRunCode`, automatically smooth-scrolls output panel into view on execution start: `outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })`.
+  * Reduced Monaco editor height from `400px` to `340px` for optimal vertical balancing with the terminal.
+  * Styled Output terminal with `min-h-[120px] max-h-[220px] overflow-y-auto`, dark surface theme, and clear monospace formatting.
+  * Added active status indicator in the terminal header showing animated pulsing dot with "RUNNING..." label during execution.
+
+[2026-08-22 14:55] Step 29: Admin Reviews — Full Rewrite with Question-Wise Grouping
+- Replaced entire contents of `src/pages/admin/AdminReviews.tsx`:
+  * Rewrote Supabase query to use correct foreign-key joins: `profiles:user_id (...)` and `challenges:challenge_id (...)`.
+  * Filters on `progress_status === 'complete'` and `review_status === 'pending'`.
+  * Groups submissions by `challenge_id` into a "question-wise" display: each challenge header shows title and pending count.
+  * Dynamic submission payload: displays `submitted_code` in a `<pre>` block for coding challenges, or GitHub/LinkedIn URLs for standard challenges.
+  * Wired up Approve / Request Changes action buttons with `handleReviewAction`:
+    - Approve: sets `review_status: 'approved'`, keeps `progress_status: 'complete'`, adds "Great job!" feedback.
+    - Reject: sets `review_status: 'rejected'`, resets `progress_status: 'ongoing'`, adds "Please review your code and resubmit." feedback.
+  * Includes loading spinner, error state with retry, and empty state ("All caught up").
+  * Fixed syntax errors from original paste: corrected malformed Button JSX props and broken avatar URL template literal.
+
+[2026-08-22 15:03] Step 30: Admin Reviews — Real-Time Student Notifications on Approval/Rejection
+- Updated `src/pages/admin/AdminReviews.tsx` `handleReviewAction`:
+  * Extended signature to accept `userId` and `challengeTitle` alongside `assignmentId` and `action`.
+  * After updating the assignment, inserts a notification into the `notifications` table:
+    - Approved: `"✅ Your submission for '{title}' was approved!"`
+    - Rejected: `"⚠️ Mentor requested changes for '{title}'."`
+  * Notification type set to `'system'`; targets the student's `user_id`.
+  * Updated both Button `onClick` handlers to pass `sub.profiles.id` and `group.challenge.title`.
+
+[2026-08-22 15:06] Step 31: Student View — Mentor Review Feedback Display + ReviewStatus Type Fix
+- Updated `src/pages/user/ChallengeDetail.tsx`:
+  * Added `CheckCircle` and `AlertCircle` to lucide-react imports.
+  * Inserted "Mentor Review Feedback Block" between the challenge body card and the submission form:
+    - Approved: emerald-themed banner with CheckCircle icon and `assignment.mentor_feedback`.
+    - Changes Requested: orange-themed banner with AlertCircle icon and feedback text.
+  * Uses `'changes_requested'` (not `'rejected'`) to match the `ReviewStatus` type.
+- Fixed `src/pages/admin/AdminReviews.tsx`:
+  * Changed action type from `'rejected'` to `'changes_requested'` to match the DB enum `ReviewStatus = 'pending' | 'changes_requested' | 'approved'`.
+  * Updated `handleReviewAction` signature, conditionals, notification message, and Button onClick handlers accordingly.
+
+[2026-08-22 15:21] Step 32: Database Trigger — Auto-Notify Admins on Student Completion
+- Created new Supabase migration: `supabase/migrations/20260822030000_admin_review_notifications.sql`:
+  * Function `notify_admin_on_submission()`: fires on assignment UPDATE when `progress_status` transitions to `'complete'`.
+  * Fetches the student's `display_name` and the challenge `title`.
+  * Loops through all `profiles` with `role = 'admin'` and inserts a `'system'` notification for each:
+    "{student} has completed the assignment '{title}'. Please review their submission."
+  * Uses `SECURITY DEFINER` to ensure the function runs with table-owner privileges.
+  * Trigger `on_assignment_completed`: attached `AFTER UPDATE` on `public.assignments`, `FOR EACH ROW`.
+
+[2026-08-22 16:13] Step 33: Database Security Fixes — Assignment Privilege Escalation & Notification Injection
+- Created new Supabase migration: `supabase/migrations/20260822050000_security_fixes.sql`:
+  * SEC-01 Fix: Created `BEFORE UPDATE` trigger function `enforce_assignment_student_write_limits()`:
+    - Allows admins full update access (bypasses all checks via `is_admin()`).
+    - Raises EXCEPTION if a non-admin user attempts to modify: `is_verified`, `review_status`, `verified_by`, `verified_at`, or `mentor_feedback`.
+    - Uses `IS DISTINCT FROM` comparisons to handle NULL transitions safely.
+    - Attached as trigger `tr_enforce_assignment_student_write_limits` on `public.assignments`.
+  * SEC-03 Fix: Dropped the permissive `"Allow trigger or admin to insert notifications"` policy (`WITH CHECK (true)`).
+    - Replaced with `"Only admins can insert notifications from client"` policy (`WITH CHECK (public.is_admin())`).
+    - Database triggers (`SECURITY DEFINER`) bypass RLS, so auto-generated notifications from assignment/completion triggers are unaffected.
+
+[2026-08-22 16:15] Step 34: Security & Performance — Edge Function Proxy, Monaco Dispose, Toolbar Responsiveness
+- Created `supabase/functions/execute-code/index.ts` (Supabase Edge Function):
+  * SEC-02 Fix: Moves JDoodle `clientId` and `clientSecret` to server-side Deno environment secrets.
+  * Validates incoming payload: requires `script` (string, max 64 KB) and `language` (whitelist: nodejs, python3, java, cpp).
+  * Forwards validated request to `https://api.jdoodle.com/v1/execute` with server-held credentials.
+  * Returns JDoodle response with CORS headers for browser access.
+  * Deploy with: `supabase functions deploy execute-code` and `supabase secrets set JDOODLE_CLIENT_ID=... JDOODLE_CLIENT_SECRET=...`
+- Updated `src/components/workspace/CodeWorkspace.tsx`:
+  * SEC-02 Fix: Replaced `corsproxy.io` + `VITE_JDOODLE_CLIENT_SECRET` with `supabase.functions.invoke('execute-code', ...)`.
+    - No more client-side credential exposure; no untrusted third-party CORS proxy.
+    - Removed `VITE_JDOODLE_CLIENT_ID` and `VITE_JDOODLE_CLIENT_SECRET` env var reads.
+  * PERF-02 Fix: Added `useEffect` cleanup to call `editorRef.current.dispose()` on component unmount, preventing Monaco editor memory leaks.
+  * UX-01 Fix: Applied `flex-wrap` and `gap-3` to the editor toolbar so buttons wrap cleanly on mobile viewports.
+
+[2026-08-22 16:18] Step 35: TanStack Query Migration (AdminReviews) & Secure Meeting URLs (AdminCohorts)
+- Refactored `src/pages/admin/AdminReviews.tsx` (PERF-01 Fix):
+  * Replaced raw `useState` + `useEffect` fetching with TanStack `useQuery({ queryKey: ['admin-pending-reviews'], ... })`.
+  * Replaced manual `fetchSubmissions()` + `setGroupedQueue()` with `useMutation` + optimistic cache update.
+  * On successful review mutation, invalidates: `['admin-pending-reviews']`, `['assignments']`, `['metrics']`, `['notifications']`.
+  * Optimistic UI: removes the approved/rejected submission from the queue instantly via `queryClient.setQueryData`, with rollback on error.
+  * Grouping logic moved from `useState` to a derived `useMemo`-like pattern (computed on each render from `rawSubmissions`).
+- Updated `src/pages/admin/AdminCohorts.tsx` (INT-01 Fix):
+  * `handleStartGlobalCall`: replaced `Date.now()` with `crypto.randomUUID()` for Jitsi room URLs.
+  * Room IDs are now 128-bit UUIDs — unguessable and not brute-forceable.
+
+[2026-08-29 16:52] Step 36: Admin Cohorts — Student Detail Modal Inline Submission Viewer
+- Enhanced `UserAssignmentsTable` in `src/pages/admin/AdminCohorts.tsx`:
+  * Added `expandedAssignmentId` local state to track and toggle inline expansion of completed assignment rows.
+  * Added an "Actions" column to the challenge assignments table displaying a toggleable "View" / "Eye" icon button for assignments where `progress_status === 'complete'`.
+  * Added expandable inline submission display directly below assignment rows:
+    - Coding Challenges (`is_coding_challenge === true`): renders `submitted_code` in a dark-themed `<pre><code>` block with `max-h-60` vertical scroll and copyable text.
+    - Standard Challenges: renders `github_url` and `linkedin_url` with `ExternalLink` icons and external navigation.
+  * Styled within the Soft Violet / Dark Surface design system (`bg-[#0F0D14]`, `bg-[#141219]`, and muted labels).
+
+[2026-08-29 18:49] Step 37: Deprecate Manual Admin Review Workflow & Submissions Directory
+- Refactored `src/pages/admin/AdminReviews.tsx`:
+  * Converted into a read-only directory of completed submissions grouped by question (`progress_status === 'complete'`).
+  * Removed manual approval / changes requested buttons, feedback textarea, and review mutations.
+  * Displays challenge cards with difficulty badge, completion counts, student details, submission date, and solution payloads (code block or external links).
+- Cleaned up `src/pages/user/ChallengeDetail.tsx`:
+  * Removed the Mentor Review Feedback banners (approved / changes requested alerts).
+  * Students see straightforward "COMPLETE" status once submitted.
+- Created `supabase/migrations/20260826000000_remove_review_system.sql`:
+  * Dropped `on_assignment_completed` trigger and `notify_admin_on_submission` database function.
+
+[2026-08-29 18:59] Step 38: End-to-End Coding Challenge Submission Flow Bugfix
+- Fixed `src/components/workspace/CodeWorkspace.tsx`:
+  * Bug: `onSubmit(code)` was called without `await`, causing fire-and-forget DB writes.
+  * Fix: Added `await` so the async mutation completes before showing success state and errors are properly caught.
+- Fixed `src/pages/user/ChallengeDetail.tsx`:
+  * Bug: `onSubmit` handler wrote to Supabase but never invalidated TanStack Query caches, leaving stale data.
+  * Bug: `hasInteracted` was never reset after submission, overriding `displayStatus` to stay "ONGOING".
+  * Fix: After successful DB write, invalidates `['assignment-detail', id]`, `['assignments']`, `['admin-completed-submissions']`, and `['metrics']` caches.
+  * Fix: Calls `setHasInteracted(false)` so `displayStatus` immediately evaluates to "COMPLETE" from the refetched DB data.
+  * Fix: Re-imported `useQueryClient`, `useAuth`, and `supabase` to support cache invalidation and admin notification.
+  * Added `notifyAdminsOnCompletion()` function: fetches all admin profiles and inserts system notifications, replacing the dropped DB trigger (`notify_admin_on_submission`).
+  * Both coding challenge (CodeWorkspace onSubmit) and standard challenge (handleFormSubmit) flows now call the notification function on completion.
+- Confirmed `src/pages/admin/AdminReviews.tsx` already correctly filters by `.eq('progress_status', 'complete')` with no `review_status` filter.
+
+[2026-08-29 21:05] Step 39: Fix SEC-01 Trigger — Remove Non-Existent Column References
+- Created `supabase/migrations/20260827000000_fix_assignment_trigger.sql`:
+  * The original `enforce_assignment_student_write_limits()` trigger function (from Step 33) referenced
+    `is_verified`, `verified_by`, and `verified_at` columns that do not exist on the `assignments` table,
+    causing runtime error: `record "new" has no field "is_verified"`.
+  * Uses `CREATE OR REPLACE FUNCTION` to update the function in-place (no need to drop/recreate the trigger).
+  * Reduced guards to only the columns that exist: `review_status` and `mentor_feedback`.
+
+[2026-08-29 21:16] Step 40: Realtime Notification Cache Invalidation
+- Updated `src/hooks/useNotifications.ts`:
+  * Added `useEffect` with Supabase Realtime channel subscription (`notifications-realtime-{userId}`).
+  * Listens for `INSERT` and `UPDATE` postgres_changes events on `public.notifications`, filtered by `user_id=eq.{userId}`.
+  * On payload receipt, calls `queryClient.invalidateQueries({ queryKey: ['notifications'] })` for instant background refetch.
+  * Proper cleanup via `supabase.removeChannel(channel)` in the `useEffect` return.
+  * Fixes stale unread badge counter and `/notifications` page delay — updates are now near-instant via WebSocket push.
+[2026-08-29 21:28] Step 41: EditChallenge Assignee Management & Diffing
+- Updated `src/pages/admin/EditChallenge.tsx`:
+  * Added TanStack Query `useQuery` hooks for active cohort members (`role === 'user'`) and existing `assignments` for the challenge.
+  * Added Assignee selection grid UI matching `CreateChallenge.tsx` with Select All / Deselect New toggle.
+  * Pre-populates existing assignees with a locked, visually distinct emerald badge and disabled click handler to protect existing progress.
+  * Implemented diffing logic in `onSubmit` to compute newly selected user IDs (`selectedUserIds.filter(uid => !alreadyAssignedIds.has(uid))`).
+  * Calls Supabase RPC `assign_challenge_users` for new assignees (dispatching assignments and notifications).
+  * Comprehensive query cache invalidations on submit: `['challenges']`, `['all-challenges-admin']`, `['assignments']`, `['admin-pending-reviews']`, `['admin-completed-submissions']`, `['metrics']`, and `['challenge-assignments', id]`.
+[2026-08-29 21:31] Step 42: Filter Admin Accounts from Cohort Directory and User Metrics
+- Updated `src/pages/admin/Dashboard.tsx`:
+  * Added `.eq('role', 'user')` to the `['cohort-members']` Supabase query so the "Active Cohort Directory" grid exclusively displays student accounts.
+- Updated `src/hooks/useChallenges.ts`:
+  * Updated `useCohortMetrics` to filter user count queries with `.eq('role', 'user')` and `.eq('account_status', 'active')` so the "Active Users" metric card strictly reflects enrolled students.
+[2026-08-29 22:04] Step 43: Fix Realtime Postgres Changes Listener Subscription Chaining
+- Updated `src/hooks/useNotifications.ts`:
+  * Consolidated separate `.on('postgres_changes')` chained calls into a single `.on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: ... })` before calling `.subscribe()`.
+  * Eliminates runtime error: `Uncaught Error: cannot add postgres_changes callbacks for realtime... after subscribe()`.
+[2026-08-29 22:12] Step 44: Defensive Rewrite of Notifications Page
+- Updated `src/pages/Notifications.tsx`:
+  * Added safe destructuring with default fallbacks for `useNotifications()` return values (`notifications = []`, `unreadCount = 0`).
+  * Implemented an early loading state guard (`if (isLoading)`) with a clean spinner before computing filters or rendering feeds.
+  * Implemented safe array mapping and empty state UI for both All and Unread filter modes.
+  * Guarded mutation handlers (`markAsRead`, `markAllAsRead`) with optional chaining to guarantee zero runtime crashes.
+[2026-08-29 22:18] Step 45: Unique Channel Instance Name for React 18 Strict Mode
+- Updated `src/hooks/useNotifications.ts` and `src/hooks/useLiveCallListener.tsx`:
+  * Appended `Date.now()` timestamp to the channel name (`notifs-${user.id}-${Date.now()}` and `live-call-${user.id}-${Date.now()}`).
+  * Guarantees a fresh, un-subscribed channel instance on every React 18 mount/double-mount, permanently resolving the Supabase client cached channel `.on()` callback collision error.
+[2026-08-29 22:24] Step 46: Ensure Shared Routes for Admin and Student Access in App.tsx
+- Updated `src/App.tsx`:
+  * Explicitly placed `<Route path="/notifications" element={<Notifications />} />`, `<Route path="/profile" element={<Profile />} />`, and `<Route path="/account" element={<Account />} />` in the shared authenticated routing block directly under `<ProtectedRoute>` and `<Layout>`.
+  * Verified both `admin` and `user` roles have full access to `/notifications` with zero route collisions or blank screen failures.
+[2026-08-30 01:06] Step 47: Automatic Gemini Flash AI Code Evaluator Integration
+- Created `supabase/migrations/20260830000000_ai_code_evaluator.sql`:
+  * Added `ai_feedback` (TEXT) and `ai_score` (INT CHECK 0-100) columns to `public.assignments`.
+- Updated `src/types/database.ts`:
+  * Added optional `ai_feedback?: string` and `ai_score?: number` to `Assignment` interface.
+- Created `supabase/functions/evaluate-code/index.ts`:
+  * Implemented Supabase Edge Function that receives student code, programming language, and full challenge context (title, description specs, external reference link).
+  * Prompts Gemini Flash (`gemini-1.5-flash-latest` / `gemini-1.5-flash`) as a senior technical mentor to grade the submission strictly against challenge requirements.
+  * Generates score (0-100) and structured markdown feedback (Summary, Strengths, Areas for Improvement, Recommendations) in sanitized JSON with CORS headers.
+- Updated `src/components/workspace/CodeWorkspace.tsx`:
+  * Passed programming `language` to `onSubmit(code, language)`.
+  * Displayed dynamic button loading state: "AI is reviewing your code..." with animated icon during evaluation.
+- Updated `src/pages/user/ChallengeDetail.tsx`:
+  * Intercepted code submission to invoke `evaluate-code` Edge Function with challenge context.
+  * Persisted `ai_score` and `ai_feedback` in the `assignments` table on completion.
+  * Added "AI Mentor Code Evaluation" report card rendering the score badge, rating level, and markdown feedback.
+- Updated `src/pages/admin/AdminReviews.tsx`:
+  * Displayed AI score badge and collapsible AI Mentor Feedback report for admins in the completed submissions directory.
+[2026-08-30 01:15] Step 48: Configure Gemini API Key for AI Code Evaluator
+- Updated `.env`:
+  * Configured `VITE_GEMINI_API_KEY` and `GEMINI_API_KEY`.
+- Updated `supabase/functions/evaluate-code/index.ts`:
+  * Added fallback to the provided Gemini API key if `Deno.env.get('GEMINI_API_KEY')` is not set in secrets.
+- Updated `src/pages/user/ChallengeDetail.tsx`:
+  * Added direct Gemini REST evaluation fallback so the AI Code Evaluator works seamlessly out-of-the-box in local development even before the Edge function is deployed.
+[2026-08-30 14:30] Step 49: Fix AI Feedback Pipeline — Stop Silent Error Swallowing
+- Fixed `src/pages/user/ChallengeDetail.tsx` (`onSubmit` handler):
+  * Root cause: Edge Function errors were caught silently via `console.warn`, falling through to a direct Gemini API fallback. If both failed, `aiScore` and `aiFeedback` remained `null` but the DB write still executed, marking the assignment `complete` with empty AI data — producing the fallback text "Evaluation complete with score recorded. Detailed markdown report pending."
+  * Fix: Replaced the try/catch/fallback pattern with strict error gating:
+    - `const { data: aiData, error: aiError } = await supabase.functions.invoke('evaluate-code', { body: {...} })`.
+    - If `aiError` exists: `console.error('Edge Function Error:', aiError)`, sets `errorMsg` for user visibility, and `throw`s to abort submission.
+    - If `aiData` is missing or `aiData.score` is not a number: logs, sets error, and `throw`s.
+    - Only proceeds to DB write with explicit mapping: `ai_score: aiData.score`, `ai_feedback: aiData.feedback`.
+  * Removed insecure direct Gemini API fallback that had a hardcoded API key (`AIzaSyC5te...`) exposed in client-side JavaScript.
+
+[2026-08-30 14:52] Step 50: Gemini Native JSON Mode — Fix SyntaxError in Edge Function
+- Updated `supabase/functions/evaluate-code/index.ts`:
+  * Root cause: Gemini returned freeform text with markdown characters that broke the regex-based JSON extraction, causing `SyntaxError: Unterminated string in JSON`.
+  * Fix: Added `responseMimeType: 'application/json'` to `generationConfig` in both primary and fallback Gemini API fetch requests.
+  * Simplified prompt: removed instruction "return ONLY a raw, valid JSON object without any markdown code blocks, backticks, or preamble text" — JSON mode enforces this at the API level.
+  * Replaced 15-line regex sanitization (stripping ``` fences, extracting `{...}` via regex match) with direct `JSON.parse(rawText)` in a clean try/catch.
+  * Safe extraction: `const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '{}'`.
+  * Parse success: uses `typeof jsonParsed.score === 'number'` check instead of `Number() || 75` coercion.
+  * Parse failure: logs error and sets graceful fallback message instead of silently returning score 75.
+
+[2026-08-30 16:16] Step 51: Collapsible AI Feedback Drawer UI
+- Updated `src/pages/user/ChallengeDetail.tsx`:
+  * Added `ChevronDown` and `ChevronUp` to lucide-react imports.
+  * Added `isFeedbackExpanded` state (default `false`).
+  * Replaced the always-visible full-height feedback body with an expandable/collapsible drawer:
+    - Collapsed (default): container clamped to `max-height: 12rem` with `overflow: hidden` and a gradient fade overlay (`linear-gradient(to top, surface-lowest, transparent)`) at the bottom.
+    - Expanded: `max-height: 9999px` with smooth 300ms CSS transition.
+  * Toggle button centered at the bottom of the card:
+    - Collapsed: "Show Detailed Feedback" with `ChevronDown` icon.
+    - Expanded: "Show Less" with `ChevronUp` icon.
+    - Styled with violet accent, monospace uppercase tracking, and hover background.
+  * Score badge (dynamic green/yellow/red) and MarkdownRenderer rendering are unchanged.
+[2026-08-30 16:40] Step 52: Fix Raw JSON Rendering in AI Feedback UI
+- Updated `src/pages/user/ChallengeDetail.tsx`:
+  * Root cause: The DB was returning a stringified JSON object (`"{ \"score\": 95, \"feedback\": \"...\" }"`) in `ai_feedback`, and the UI was passing this raw string directly to `MarkdownRenderer`.
+  * Added defensive JSON parsing after early returns: if `displayFeedback.trim().startsWith('{')`, attempts `JSON.parse()` to extract `parsed.feedback` and `parsed.score`.
+  * Replaced the old `<Card>`-based feedback UI with a simpler `<div>` layout matching the specified design:
+    - Header with Bot icon + "AI MENTOR CODE EVALUATION" title + score badge (`displayScore / 100`).
+    - Collapsible content area using `max-h-48 overflow-hidden` with gradient fade overlay.
+    - Toggle button: "Show Detailed Feedback" / "Show Less" with ChevronDown/ChevronUp icons.
+    - `<MarkdownRenderer content={displayFeedback} />` now receives the extracted markdown string, not raw JSON.
+
+[2026-08-30 16:52] Step 53: Enforce Structured JSON via Gemini responseSchema
+- Updated `supabase/functions/evaluate-code/index.ts`:
+  * Root cause: Gemini was inserting raw, unescaped newlines into the markdown feedback string, breaking `JSON.parse()` with `SyntaxError: Unterminated string in JSON`.
+  * Updated prompt `MANDATORY OUTPUT FORMAT` section with explicit escape instructions: "All newlines inside the feedback string MUST be strictly escaped as \\n. Do NOT output raw newlines or unescaped double quotes."
+  * Added `responseSchema` to `generationConfig` in BOTH primary and fallback fetch requests:
+    - `type: 'OBJECT'`, properties: `score: { type: 'INTEGER' }`, `feedback: { type: 'STRING' }`, required: `['score', 'feedback']`.
+  * This uses Gemini's native structured output feature to guarantee the response conforms to the exact schema, preventing malformed JSON at the API level.
+[2026-08-30 18:07] Step 54: Prevent Double-Quote JSON Corruption with Dual-Layer Parsing Defense
+- Updated `supabase/functions/evaluate-code/index.ts`:
+  * Root cause: Gemini was occasionally inserting unescaped double quotes (") inside the markdown feedback string, corrupting the JSON payload and causing `SyntaxError: Expected ',' or '}' after property value`.
+  * Layer 1 (Prompt Defense): Updated `MANDATORY OUTPUT FORMAT` with critical rule forbidding double quotes inside the feedback string and recommending single quotes or backticks.
+  * Layer 2 (Resilient Parser Defense): Added fallback regex extraction around `JSON.parse(rawText)`. If parsing fails, extracts `score` via `/"score"\s*:\s*(\d+)/` and `feedback` via `/"feedback"\s*:\s*"([\s\S]*)"\s*\}/`, preserving unescaped markdown output.
+[2026-08-30 18:13] Step 55: Transition evaluate-code from JSON Mode to Raw Text with Regex Extraction
+- Updated `supabase/functions/evaluate-code/index.ts`:
+  * Removed `responseMimeType` and `responseSchema` constraints from `generationConfig` in both Gemini fetch calls.
+  * Updated `promptText` `MANDATORY OUTPUT FORMAT` to explicitly mandate raw plain text output starting with `"SCORE: X"` followed by raw Markdown feedback.
+  * Replaced JSON parsing with regex extraction (`/SCORE:\s*(\d+)/i`), stripping the score line and extracting pure markdown feedback without JSON escaping failures.
+[2026-08-30 19:50] Step 56: Global Text Selection Color Accessibility Fix
+- Updated `src/index.css`:
+  * Added `::selection` and `::-moz-selection` rules inside `@layer base` with `background-color: rgba(139, 92, 246, 0.4)` (violet accent) and `color: #ffffff` to prevent contrast and unreadable text issues on dark surfaces.
+================================================================================
+
