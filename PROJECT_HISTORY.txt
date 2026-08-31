@@ -563,5 +563,30 @@ Created: 2026-08-20
 [2026-08-30 19:50] Step 56: Global Text Selection Color Accessibility Fix
 - Updated `src/index.css`:
   * Added `::selection` and `::-moz-selection` rules inside `@layer base` with `background-color: rgba(139, 92, 246, 0.4)` (violet accent) and `color: #ffffff` to prevent contrast and unreadable text issues on dark surfaces.
+[2026-08-31 21:49] Step 57: Comprehensive Vitest Test Suite — Scaffold, Execute, Auto-Remediate
+- Installed: `vitest`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`, `jsdom`.
+- Configured `vite.config.ts` with Vitest `test` block: `globals: true`, `environment: 'jsdom'`, `setupFiles: ['./src/test/setup.ts']`.
+- Created `src/test/setup.ts` importing `@testing-library/jest-dom/vitest` matchers.
+- Created `src/lib/__mocks__/supabase.ts` — generic Supabase mock intercepting DB, Auth, Realtime, and Functions.
+- Added `"test": "vitest run"` script to `package.json`.
+- Test suites created:
+  * `src/test/evaluate-code.test.ts` (9 tests) — SCORE regex extraction, clamping, missing SCORE, markdown preservation.
+  * `src/test/useNotifications.test.tsx` (5 tests) — Realtime channel lifecycle, timestamp uniqueness (Step 45), `postgres_changes` filter, `removeChannel` cleanup, `invalidateQueries` on payload.
+  * `src/test/CodeWorkspace.test.tsx` (4 tests) — Monaco mock mount, `dispose()` on unmount (PERF-02), loading spinner + disabled state, empty code guard.
+  * `src/test/ChallengeDetail.test.ts` (13 tests) — JSON-in-string parsing (Step 52), null safety, displayStatus derivation, expand/collapse CSS logic.
+- Auto-remediation log (4 iterations):
+  * Run 1: 22 pass, 2 suites failed (import path `../../` → `../` fix).
+  * Run 2: 27 pass, 1 suite failed (`vi.mock` hoisting — inlined factory).
+  * Run 3: 30 pass, 1 test failed (Button hides children during `isLoading` — switched assertion to spinner + disabled check).
+  * Run 4: 31 pass, 0 failed. 100% pass rate.
+- UI Discovery: The text "AI is reviewing your code..." in `CodeWorkspace.tsx` is effectively dead code during loading because `Button` replaces children with a spinner when `isLoading=true`.
+[2026-08-31 22:04] Step 58: Fix Button Component Children Stripping During Loading State
+- Updated `src/components/ui/Button.tsx`:
+  * Refactored `Button` component using `React.forwardRef` and exported `buttonVariants` & `cn` helpers.
+  * Preserved `children` in the DOM alongside `<Loader2 className="w-4 h-4 mr-2 animate-spin shrink-0" />` when `isLoading` is true.
+  * Ensures dynamic loading states like `"AI is reviewing your code..."` render with both the spinner and descriptive text.
+- Updated `src/test/CodeWorkspace.test.tsx`:
+  * Updated the loading state transition test to assert that both `"AI is reviewing your code..."` text and the active spinner exist simultaneously during submission.
+  * All 31 tests passing across 4 test suites (100% pass rate).
 ================================================================================
 
