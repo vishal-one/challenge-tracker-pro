@@ -8,9 +8,10 @@ import { supabase } from '../../lib/supabase';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { Avatar } from '../../components/ui/Avatar';
 import { MarkdownRenderer } from '../../components/common/MarkdownRenderer';
 import { DifficultyLevel, Profile } from '../../types/database';
-import { ArrowLeft, Pencil, Eye, Edit3, Link2, Sparkles, Users, Check, Lock } from 'lucide-react';
+import { ArrowLeft, Pencil, Eye, Edit3, Link2, Users, Check, Lock } from 'lucide-react';
 
 const challengeSchema = z.object({
   title: z.string().min(4, 'Title must be at least 4 characters long'),
@@ -219,7 +220,7 @@ export const EditChallenge: React.FC = () => {
       <div className="p-12 text-center space-y-4">
         <p className="font-mono text-sm text-red-400">{fetchError}</p>
         <Link to="/admin/challenges">
-          <Button variant="ghost" leftIcon={<ArrowLeft className="w-4 h-4" />}>
+          <Button variant="ghost">
             Back to Manage Challenges
           </Button>
         </Link>
@@ -406,9 +407,9 @@ export const EditChallenge: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-center gap-2.5 truncate">
-                    <img
-                      src={u.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${u.id}`}
-                      alt={u.display_name || 'Cohort member'}
+                    <Avatar
+                      src={u.avatar_url}
+                      name={u.display_name}
                       className="w-7 h-7 rounded border border-neutral-border bg-surface shrink-0"
                     />
                     <div className="truncate">
@@ -450,7 +451,6 @@ export const EditChallenge: React.FC = () => {
           <Button
             type="submit"
             isLoading={isSubmitting}
-            rightIcon={<Sparkles className="w-4 h-4" />}
           >
             {newAssigneeCount > 0
               ? `Save Changes & Assign ${newAssigneeCount} New`

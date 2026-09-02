@@ -8,13 +8,9 @@ import { Button } from '../../components/ui/Button';
 import { DifficultyBadge } from '../../components/ui/Badge';
 import {
   Trophy,
-  PlusSquare,
   Archive,
   CheckCircle2,
-  Pencil,
-  Trash2,
   Search,
-  LayoutDashboard,
 } from 'lucide-react';
 
 export const AdminManageChallenges: React.FC = () => {
@@ -80,18 +76,15 @@ export const AdminManageChallenges: React.FC = () => {
           <h1 className="text-2xl font-mono font-bold uppercase tracking-wider text-neutral-txt flex items-center gap-2">
             MANAGE <span className="text-violet">CHALLENGES</span>
           </h1>
-          <p className="text-xs font-mono text-neutral-muted mt-1">
-            Edit, archive, or delete challenges in the repository.
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Link to="/admin/dashboard">
-            <Button variant="ghost" size="sm" leftIcon={<LayoutDashboard className="w-4 h-4" />}>
+            <Button variant="ghost" size="sm">
               Dashboard
             </Button>
           </Link>
           <Link to="/admin/challenges/new">
-            <Button size="sm" leftIcon={<PlusSquare className="w-4 h-4" />}>
+            <Button size="sm">
               New Challenge
             </Button>
           </Link>
@@ -158,7 +151,7 @@ export const AdminManageChallenges: React.FC = () => {
           <div className="py-10 text-center font-mono text-xs text-neutral-muted space-y-3">
             <p>No challenges match your search.</p>
             <Link to="/admin/challenges/new">
-              <Button size="sm" leftIcon={<PlusSquare className="w-4 h-4" />}>
+              <Button size="sm">
                 Create One Now
               </Button>
             </Link>
@@ -211,7 +204,6 @@ export const AdminManageChallenges: React.FC = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          leftIcon={<Pencil className="w-3.5 h-3.5" />}
                           onClick={() => navigate(`/admin/challenges/edit/${challenge.id}`)}
                         >
                           Edit
@@ -220,7 +212,6 @@ export const AdminManageChallenges: React.FC = () => {
                           size="sm"
                           variant="danger"
                           isLoading={deletingId === challenge.id}
-                          leftIcon={<Trash2 className="w-3.5 h-3.5" />}
                           onClick={() => handleDelete(challenge)}
                         >
                           Delete

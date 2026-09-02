@@ -4,8 +4,7 @@ import { useUserAssignments } from '../../hooks/useAssignments';
 import { Card } from '../../components/ui/Card';
 import { StatusBadge, DifficultyBadge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
-import { ProgressStatus } from '../../types/database';
-import { CheckSquare, Clock, CheckCircle2, Search, ArrowRight, ExternalLink } from 'lucide-react';
+import { CheckSquare, Clock, CheckCircle2, Search, ExternalLink } from 'lucide-react';
 
 export const UserDashboard: React.FC = () => {
   const { assignments, isLoading } = useUserAssignments();
@@ -33,13 +32,10 @@ export const UserDashboard: React.FC = () => {
         <h1 className="text-2xl font-mono font-bold uppercase tracking-wider text-neutral-txt flex items-center gap-2">
           MY ASSIGNED <span className="text-violet">CHALLENGES</span>
         </h1>
-        <p className="text-xs font-mono text-neutral-muted mt-1">
-          Track technical progress, review milestone specs, and submit proof artifacts
-        </p>
       </div>
 
       {/* Progress Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         <Card hoverGlow>
           <div className="flex items-center justify-between">
             <span className="text-xs font-mono uppercase tracking-wider text-neutral-muted">Total Assigned</span>
@@ -76,7 +72,7 @@ export const UserDashboard: React.FC = () => {
 
       {/* Data Table Section */}
       <Card className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-border pb-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-neutral-border pb-4">
           <div className="flex items-center gap-2">
             <CheckSquare className="w-5 h-5 text-violet" />
             <h2 className="text-base font-mono font-bold uppercase text-neutral-txt">
@@ -84,7 +80,8 @@ export const UserDashboard: React.FC = () => {
             </h2>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          {/* Search & Filter Bar */}
+          <div className="flex flex-col lg:flex-row flex-wrap items-stretch lg:items-center gap-4">
             {/* Search Input */}
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-muted" />
@@ -93,17 +90,17 @@ export const UserDashboard: React.FC = () => {
                 placeholder="Search assigned tasks..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-surface-lowest border border-neutral-border rounded pl-9 pr-3 py-1.5 font-mono text-xs text-neutral-txt outline-none focus:border-violet"
+                className="w-full lg:w-64 bg-surface-lowest border border-neutral-border rounded pl-9 pr-3 py-1.5 font-mono text-xs text-neutral-txt outline-none focus:border-violet"
               />
             </div>
 
             {/* Status Filter Buttons */}
-            <div className="flex items-center bg-surface-lowest border border-neutral-border rounded p-0.5 font-mono text-xs">
+            <div className="flex flex-wrap items-center bg-surface-lowest border border-neutral-border rounded p-0.5 font-mono text-xs gap-1 sm:gap-0">
               {['all', 'incomplete', 'ongoing', 'complete'].map((st) => (
                 <button
                   key={st}
                   onClick={() => setStatusFilter(st)}
-                  className={`px-2.5 py-1 rounded uppercase tracking-wider transition-colors ${
+                  className={`flex-1 sm:flex-initial px-2.5 py-1 rounded uppercase tracking-wider transition-colors ${
                     statusFilter === st
                       ? 'bg-violet text-black font-semibold'
                       : 'text-neutral-muted hover:text-neutral-txt'
@@ -126,21 +123,21 @@ export const UserDashboard: React.FC = () => {
             No assigned challenges match your current filter.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-x-auto rounded-lg">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-neutral-border/60 text-[11px] font-mono uppercase tracking-wider text-neutral-muted">
-                  <th className="pb-3 px-3">Challenge Title</th>
-                  <th className="pb-3 px-3">Difficulty</th>
-                  <th className="pb-3 px-3">Progress Status</th>
-                  <th className="pb-3 px-3">Proofs</th>
-                  <th className="pb-3 px-3 text-right">View Spec</th>
+                  <th className="pb-3 px-3 whitespace-nowrap">Challenge Title</th>
+                  <th className="pb-3 px-3 whitespace-nowrap">Difficulty</th>
+                  <th className="pb-3 px-3 whitespace-nowrap">Progress Status</th>
+                  <th className="pb-3 px-3 whitespace-nowrap">Proofs</th>
+                  <th className="pb-3 px-3 text-right whitespace-nowrap">View Spec</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-border/30 font-mono text-xs">
                 {filtered.map((asgn) => (
                   <tr key={asgn.id} className="hover:bg-surface-high/30 transition-colors">
-                    <td className="py-3 px-3 font-semibold text-neutral-txt">
+                    <td className="py-3 px-3 font-semibold text-neutral-txt whitespace-nowrap">
                       <div>
                         <p>{asgn.challenge?.title || 'Challenge'}</p>
                         {asgn.completed_at && (
@@ -151,15 +148,15 @@ export const UserDashboard: React.FC = () => {
                       </div>
                     </td>
 
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       {asgn.challenge && <DifficultyBadge level={asgn.challenge.difficulty_level} />}
                     </td>
 
-                    <td className="py-3 px-3">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       <StatusBadge status={asgn.progress_status} />
                     </td>
 
-                    <td className="py-3 px-3 text-neutral-muted">
+                    <td className="py-3 px-3 text-neutral-muted whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         {asgn.github_url && (
                           <a
@@ -185,9 +182,9 @@ export const UserDashboard: React.FC = () => {
                       </div>
                     </td>
 
-                    <td className="py-3 px-3 text-right">
+                    <td className="py-3 px-3 text-right whitespace-nowrap">
                       <Link to={`/my-challenges/${asgn.id}`}>
-                        <Button size="sm" variant="ghost" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
+                        <Button size="sm" variant="ghost">
                           Open
                         </Button>
                       </Link>

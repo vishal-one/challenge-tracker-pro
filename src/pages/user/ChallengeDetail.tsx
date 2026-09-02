@@ -17,7 +17,6 @@ import {
   Github,
   Linkedin,
   CheckCircle2,
-  Sparkles,
   Bot,
   Award,
   ChevronDown,
@@ -394,7 +393,6 @@ export const ChallengeDetail: React.FC = () => {
               <Button
                 type="submit"
                 isLoading={updateSubmission.isPending}
-                rightIcon={<Sparkles className="w-4 h-4" />}
               >
                 Save & Submit Proof Artifacts
               </Button>

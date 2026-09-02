@@ -8,9 +8,10 @@ import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { Avatar } from '../../components/ui/Avatar';
 import { MarkdownRenderer } from '../../components/common/MarkdownRenderer';
 import { DifficultyLevel } from '../../types/database';
-import { ArrowLeft, PlusSquare, Eye, Edit3, Link2, Users, Check, Sparkles } from 'lucide-react';
+import { ArrowLeft, PlusSquare, Eye, Edit3, Link2, Users, Check } from 'lucide-react';
 
 const challengeSchema = z.object({
   title: z.string().min(4, 'Title must be at least 4 characters long'),
@@ -247,10 +248,10 @@ export const CreateChallenge: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-center gap-2.5 truncate">
-                    <img
-                      src={u.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${u.id}`}
-                      alt={u.display_name}
-                      className="w-7 h-7 rounded border border-neutral-border bg-surface"
+                    <Avatar
+                      src={u.avatar_url}
+                      name={u.display_name}
+                      className="w-7 h-7 rounded border border-neutral-border bg-surface shrink-0"
                     />
                     <span className="truncate font-semibold">{u.display_name}</span>
                   </div>
@@ -279,7 +280,6 @@ export const CreateChallenge: React.FC = () => {
           <Button
             type="submit"
             isLoading={createChallenge.isPending}
-            rightIcon={<Sparkles className="w-4 h-4" />}
           >
             Publish Challenge & Dispatch Alerts
           </Button>

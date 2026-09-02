@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { DifficultyBadge } from '../../components/ui/Badge';
 import { MarkdownRenderer } from '../../components/common/MarkdownRenderer';
+import { Avatar } from '../../components/ui/Avatar';
 import {
   Search,
   AlertCircle,
@@ -121,9 +122,6 @@ export const AdminReviews: React.FC = () => {
             <h1 className="text-2xl font-mono font-bold uppercase tracking-wider text-neutral-txt flex items-center gap-2">
               COMPLETED <span className="text-violet">SUBMISSIONS</span>
             </h1>
-            <p className="text-xs font-mono text-neutral-muted mt-1">
-              Directory of all completed student challenge submissions grouped by question.
-            </p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -219,13 +217,10 @@ export const AdminReviews: React.FC = () => {
                       {/* Student Info Bar */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex items-center gap-3">
-                          <img
-                            src={
-                              sub.profiles?.avatar_url ||
-                              `https://api.dicebear.com/7.x/bottts/svg?seed=${sub.profiles?.id || sub.user_id}`
-                            }
-                            alt={sub.profiles?.display_name || 'Student'}
-                            className="w-9 h-9 rounded-lg bg-surface border border-neutral-border object-cover shrink-0"
+                          <Avatar
+                            src={sub.profiles?.avatar_url}
+                            name={sub.profiles?.display_name || 'Student'}
+                            className="w-9 h-9 rounded-lg bg-surface border border-neutral-border shrink-0"
                           />
                           <div>
                             <p className="font-mono text-sm font-bold text-neutral-txt">

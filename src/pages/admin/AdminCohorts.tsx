@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAdminCohorts } from '../../hooks/useAssignments';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
@@ -7,20 +8,23 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { StatusBadge, DifficultyBadge } from '../../components/ui/Badge';
+import * as Avatar from '@radix-ui/react-avatar';
+import { getInitials } from '../../components/ui/Avatar';
 import {
   Users,
   Building2,
   Github,
   Linkedin,
   ExternalLink,
-  UserMinus,
   FileText,
   Search,
   ChevronRight,
-  Video,
   Eye,
   EyeOff,
   Code2,
+  AlertTriangle,
+  CheckCircle2,
+  X,
 } from 'lucide-react';
 
 // Inner component so the hook call respects Rules of Hooks
@@ -212,120 +216,139 @@ const StudentDetailModal: React.FC<{
   user: Profile;
   isOpen: boolean;
   onClose: () => void;
-  onRemove: (userId: string) => void;
+  onRemove: (userId: string) => void | Promise<void>;
   isRemoving: boolean;
   onStartCall: () => void;
   isStartingCall: boolean;
-}> = ({ user, isOpen, onClose, onRemove, isRemoving, onStartCall, isStartingCall }) => (
-  <Modal
-    isOpen={isOpen}
-    onClose={onClose}
-    title={user.display_name}
-    description={user.institution ?? 'No institution set'}
-  >
-    <div className="space-y-5">
-      {/* Avatar + identity */}
-      <div className="flex items-center gap-4 p-4 rounded bg-surface-lowest border border-neutral-border/60">
-        <img
-          src={
-            user.avatar_url ||
-            `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}`
-          }
-          alt={user.display_name}
-          className="w-16 h-16 rounded-lg border-2 border-violet/40 object-cover"
-        />
-        <div className="space-y-1 min-w-0">
-          <p className="font-mono text-sm font-bold text-neutral-txt truncate">
-            {user.display_name}
-          </p>
-          {user.institution && (
-            <p className="text-xs font-mono text-neutral-muted flex items-center gap-1">
-              <Building2 className="w-3 h-3" /> {user.institution}
+}> = ({ user, isOpen, onClose, onRemove, isRemoving, onStartCall, isStartingCall }) => {
+  const studentUserId = user.user_id || user.id;
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={user.display_name}
+      description={user.institution ?? 'No institution set'}
+    >
+      <div className="space-y-5">
+        {/* Avatar + identity */}
+        <div className="flex items-center gap-4 p-4 rounded bg-surface-lowest border border-neutral-border/60">
+          <Avatar.Root className="w-16 h-16 rounded-lg border-2 border-violet/40 bg-[#211E26] shrink-0 overflow-hidden inline-flex items-center justify-center">
+            <Avatar.Image
+              src={user.avatar_url || undefined}
+              alt={user.display_name}
+              className="w-full h-full object-cover"
+            />
+            <Avatar.Fallback
+              delayMs={0}
+              className="w-full h-full bg-[#211E26] text-[#A78BF9] font-mono font-bold text-lg flex items-center justify-center select-none"
+            >
+              {getInitials(user.display_name)}
+            </Avatar.Fallback>
+          </Avatar.Root>
+          <div className="space-y-1 min-w-0">
+            <p className="font-mono text-sm font-bold text-neutral-txt truncate">
+              {user.display_name}
             </p>
-          )}
-          <span
-            className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
-              user.account_status === 'active'
-                ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
-                : 'border-neutral-border text-neutral-muted'
-            }`}
-          >
-            ● {user.account_status}
-          </span>
+            {user.institution && (
+              <p className="text-xs font-mono text-neutral-muted flex items-center gap-1">
+                <Building2 className="w-3 h-3" /> {user.institution}
+              </p>
+            )}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                  user.account_status === 'active'
+                    ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
+                    : 'border-neutral-border text-neutral-muted'
+                }`}
+              >
+                ● {user.account_status}
+              </span>
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                  user.cohort_id
+                    ? 'border-violet/30 text-violet bg-violet/10'
+                    : 'border-neutral-border text-neutral-muted'
+                }`}
+              >
+                {user.cohort_id ? 'Enrolled in Cohort' : 'Not in a cohort'}
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Bio */}
-      {user.bio && (
-        <div className="space-y-1">
-          <p className="text-[10px] font-mono uppercase tracking-wider text-neutral-muted flex items-center gap-1">
-            <FileText className="w-3 h-3" /> Bio
+        {/* Bio */}
+        {user.bio && (
+          <div className="space-y-1">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-neutral-muted flex items-center gap-1">
+              <FileText className="w-3 h-3" /> Bio
+            </p>
+            <p className="text-xs font-mono text-neutral-txt leading-relaxed">{user.bio}</p>
+          </div>
+        )}
+
+        {/* GitHub / LinkedIn links */}
+        {(user.github_username || user.linkedin_url) && (
+          <div className="flex flex-wrap gap-3">
+            {user.github_username && (
+              <a
+                href={`https://github.com/${user.github_username}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-mono text-violet hover:underline"
+              >
+                <Github className="w-4 h-4" /> {user.github_username}{' '}
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
+            {user.linkedin_url && (
+              <a
+                href={user.linkedin_url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-mono text-violet hover:underline"
+              >
+                <Linkedin className="w-4 h-4" /> LinkedIn{' '}
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* Assignment history */}
+        <div className="space-y-2">
+          <p className="text-[10px] font-mono uppercase tracking-wider text-neutral-muted">
+            Challenge Assignments
           </p>
-          <p className="text-xs font-mono text-neutral-txt leading-relaxed">{user.bio}</p>
+          <UserAssignmentsTable userId={studentUserId} />
         </div>
-      )}
 
-      {/* GitHub / LinkedIn links */}
-      {(user.github_username || user.linkedin_url) && (
-        <div className="flex flex-wrap gap-3">
-          {user.github_username && (
-            <a
-              href={`https://github.com/${user.github_username}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-mono text-violet hover:underline"
-            >
-              <Github className="w-4 h-4" /> {user.github_username}{' '}
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
-          {user.linkedin_url && (
-            <a
-              href={user.linkedin_url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-mono text-violet hover:underline"
-            >
-              <Linkedin className="w-4 h-4" /> LinkedIn{' '}
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
+        {/* Actions */}
+        <div className="pt-2 border-t border-neutral-border flex items-center justify-between gap-3 flex-wrap">
+          <Button
+            variant="ghost"
+            size="sm"
+            isLoading={isStartingCall}
+            onClick={onStartCall}
+          >
+            Start Live Class
+          </Button>
+
+          <Button
+            variant="danger"
+            size="sm"
+            isLoading={isRemoving}
+            disabled={isRemoving}
+            onClick={() => onRemove(studentUserId)}
+          >
+            Remove from Cohort
+          </Button>
         </div>
-      )}
-
-      {/* Assignment history */}
-      <div className="space-y-2">
-        <p className="text-[10px] font-mono uppercase tracking-wider text-neutral-muted">
-          Challenge Assignments
-        </p>
-        <UserAssignmentsTable userId={user.id} />
       </div>
-
-      {/* Actions */}
-      <div className="pt-2 border-t border-neutral-border flex items-center justify-between gap-3 flex-wrap">
-        <Button
-          variant="ghost"
-          size="sm"
-          isLoading={isStartingCall}
-          leftIcon={<Video className="w-4 h-4 text-violet" />}
-          onClick={onStartCall}
-        >
-          Start Live Class
-        </Button>
-
-        <Button
-          variant="danger"
-          size="sm"
-          isLoading={isRemoving}
-          leftIcon={<UserMinus className="w-4 h-4" />}
-          onClick={() => onRemove(user.id)}
-        >
-          Remove from Cohort
-        </Button>
-      </div>
-    </div>
-  </Modal>
-);
+    </Modal>
+  );
+};
 
 // ── Main page ──────────────────────────────────────────────────────────────
 
@@ -334,6 +357,14 @@ export const AdminCohorts: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [search, setSearch] = useState('');
   const [isStartingGlobalCall, setIsStartingGlobalCall] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const filtered = members.filter(
     (m) =>
@@ -342,8 +373,15 @@ export const AdminCohorts: React.FC = () => {
   );
 
   const handleRemove = async (userId: string) => {
-    await removeFromCohort.mutateAsync(userId);
-    setSelectedUser(null);
+    try {
+      await removeFromCohort.mutateAsync(userId);
+      setSelectedUser(null);
+      setToast({ message: 'Student removed from cohort successfully.', type: 'success' });
+    } catch (err: any) {
+      console.error('Failed to remove student from cohort:', err);
+      const errorMessage = err?.message || 'Failed to remove student from cohort.';
+      setToast({ message: errorMessage, type: 'error' });
+    }
   };
 
   const handleStartGlobalCall = async () => {
@@ -397,14 +435,10 @@ export const AdminCohorts: React.FC = () => {
           <h1 className="text-2xl font-mono font-bold uppercase tracking-wider text-neutral-txt flex items-center gap-2">
             MANAGE <span className="text-violet">COHORTS</span>
           </h1>
-          <p className="text-xs font-mono text-neutral-muted mt-1">
-            Browse enrolled students, inspect their profiles, and manage cohort membership.
-          </p>
         </div>
 
         <Button
           isLoading={isStartingGlobalCall}
-          leftIcon={<Video className="w-4 h-4" />}
           onClick={handleStartGlobalCall}
         >
           Start Live Class
@@ -462,14 +496,19 @@ export const AdminCohorts: React.FC = () => {
                   >
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={
-                            member.avatar_url ||
-                            `https://api.dicebear.com/7.x/bottts/svg?seed=${member.id}`
-                          }
-                          alt={member.display_name}
-                          className="w-8 h-8 rounded border border-neutral-border object-cover bg-surface shrink-0"
-                        />
+                        <Avatar.Root className="w-8 h-8 rounded border border-neutral-border bg-[#211E26] shrink-0 overflow-hidden inline-flex items-center justify-center">
+                          <Avatar.Image
+                            src={member.avatar_url || undefined}
+                            alt={member.display_name}
+                            className="w-full h-full object-cover"
+                          />
+                          <Avatar.Fallback
+                            delayMs={0}
+                            className="w-full h-full bg-[#211E26] text-[#A78BF9] font-mono font-bold text-xs flex items-center justify-center select-none"
+                          >
+                            {getInitials(member.display_name)}
+                          </Avatar.Fallback>
+                        </Avatar.Root>
                         <span className="font-semibold text-neutral-txt truncate max-w-[160px]">
                           {member.display_name}
                         </span>
@@ -510,7 +549,6 @@ export const AdminCohorts: React.FC = () => {
                           size="sm"
                           variant="ghost"
                           isLoading={isStartingGlobalCall}
-                          leftIcon={<Video className="w-3.5 h-3.5 text-violet" />}
                           onClick={handleStartGlobalCall}
                         >
                           Live Class
@@ -538,6 +576,45 @@ export const AdminCohorts: React.FC = () => {
           isStartingCall={isStartingGlobalCall}
         />
       )}
+
+      {/* Toast Notification */}
+      {toast &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="fixed bottom-6 right-6 z-[9999] max-w-md animate-slide-up"
+          >
+            <div
+              className={`p-4 rounded-xl border shadow-2xl flex items-start gap-3 backdrop-blur-md ${
+                toast.type === 'error'
+                  ? 'bg-[#181116]/95 border-red-500/50 text-red-200 shadow-red-950/40'
+                  : 'bg-[#141d18]/95 border-emerald-500/50 text-emerald-200 shadow-emerald-950/40'
+              }`}
+            >
+              {toast.type === 'error' ? (
+                <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+              ) : (
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+              )}
+              <div className="flex-1 text-xs font-mono">
+                <p className={`font-bold uppercase tracking-wider ${toast.type === 'error' ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {toast.type === 'error' ? 'Removal Failed' : 'Success'}
+                </p>
+                <p className="mt-0.5 text-neutral-txt">{toast.message}</p>
+              </div>
+              <button
+                onClick={() => setToast(null)}
+                className="text-neutral-muted hover:text-neutral-txt p-1 rounded transition-colors"
+                aria-label="Dismiss notification"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

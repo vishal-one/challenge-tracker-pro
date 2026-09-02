@@ -7,14 +7,13 @@ import { Profile } from '../../types/database';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { DifficultyBadge } from '../../components/ui/Badge';
+import * as Avatar from '@radix-ui/react-avatar';
+import { getInitials } from '../../components/ui/Avatar';
 import {
   Users,
   Trophy,
   CheckCircle2,
   TrendingUp,
-  PlusSquare,
-  Archive,
-  RotateCcw,
   Search,
   ExternalLink,
   ShieldCheck,
@@ -33,6 +32,8 @@ export const AdminDashboard: React.FC = () => {
         .from('profiles')
         .select('*')
         .eq('role', 'user')
+        .eq('account_status', 'active')
+        .not('cohort_id', 'is', null)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data as Profile[];
@@ -58,7 +59,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         <Link to="/admin/challenges/new">
-          <Button leftIcon={<PlusSquare className="w-4 h-4" />}>
+          <Button>
             Publish New Challenge
           </Button>
         </Link>
@@ -157,7 +158,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="p-8 text-center font-mono text-xs text-neutral-muted space-y-3">
             <p>No challenges match your search filter.</p>
             <Link to="/admin/challenges/new">
-              <Button size="sm" leftIcon={<PlusSquare className="w-4 h-4" />}>
+              <Button size="sm">
                 Create One Now
               </Button>
             </Link>
@@ -215,7 +216,6 @@ export const AdminDashboard: React.FC = () => {
                         variant={chal.is_archived ? 'ghost' : 'danger'}
                         onClick={() => toggleArchive.mutate({ id: chal.id, is_archived: chal.is_archived })}
                         isLoading={toggleArchive.isPending}
-                        leftIcon={chal.is_archived ? <RotateCcw className="w-3.5 h-3.5" /> : <Archive className="w-3.5 h-3.5" />}
                       >
                         {chal.is_archived ? 'Unarchive' : 'Archive'}
                       </Button>
@@ -244,11 +244,19 @@ export const AdminDashboard: React.FC = () => {
             </div>
           ) : cohortMembers.map((u) => (
             <div key={u.id} className="p-3 rounded bg-surface-lowest border border-neutral-border flex items-center gap-3">
-              <img
-                src={u.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${u.id}`}
-                alt={u.display_name}
-                className="w-10 h-10 rounded border border-neutral-border bg-surface object-cover"
-              />
+              <Avatar.Root className="w-10 h-10 rounded border border-neutral-border bg-[#211E26] shrink-0 overflow-hidden inline-flex items-center justify-center">
+                <Avatar.Image
+                  src={u.avatar_url || undefined}
+                  alt={u.display_name}
+                  className="w-full h-full object-cover"
+                />
+                <Avatar.Fallback
+                  delayMs={0}
+                  className="w-full h-full bg-[#211E26] text-[#A78BF9] font-mono font-bold text-xs flex items-center justify-center select-none"
+                >
+                  {getInitials(u.display_name)}
+                </Avatar.Fallback>
+              </Avatar.Root>
               <div className="min-w-0 flex-1">
                 <p className="font-mono text-xs font-bold text-neutral-txt truncate">{u.display_name}</p>
                 <div className="flex items-center gap-2 mt-0.5">

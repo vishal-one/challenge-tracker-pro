@@ -78,9 +78,6 @@ export const Account: React.FC = () => {
         <h1 className="text-2xl font-mono font-bold uppercase tracking-wider text-neutral-txt flex items-center gap-2">
           ACCOUNT <span className="text-violet">SECURITY SETTINGS</span>
         </h1>
-        <p className="text-xs font-mono text-neutral-muted mt-1">
-          Manage your account security, passwords, and access.
-        </p>
       </div>
 
       <Card className="space-y-6">

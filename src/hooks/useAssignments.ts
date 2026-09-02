@@ -125,12 +125,14 @@ export function useAdminCohorts() {
   const queryClient = useQueryClient();
 
   const membersQuery = useQuery({
-    queryKey: ['admin-cohort-members'],
+    queryKey: ['cohort-members'],
     queryFn: async (): Promise<Profile[]> => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('role', 'user')
+        .eq('account_status', 'active')
+        .not('cohort_id', 'is', null)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data as Profile[];
@@ -139,15 +141,45 @@ export function useAdminCohorts() {
 
   const removeFromCohort = useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase
+      if (!userId) throw new Error('User ID is required to remove from cohort.');
+
+      // Attempt hard delete first with .select() to verify affected rows
+      const { data: deleteData, error: deleteError } = await supabase
         .from('profiles')
-        .update({ cohort_id: null, updated_at: new Date().toISOString() })
-        .eq('id', userId);
-      if (error) throw error;
+        .delete()
+        .eq('id', userId)
+        .select();
+
+      const isDeleteBlocked = deleteError || !deleteData || deleteData.length === 0;
+
+      // Catch any constraint, permission error, or 0 rows affected and fall back to soft-delete
+      if (isDeleteBlocked) {
+        console.warn(
+          'Hard delete blocked by FK constraint or security policies. Falling back to soft delete.',
+          deleteError || '0 rows affected'
+        );
+
+        const { data: updateData, error: updateError } = await supabase
+          .from('profiles')
+          .update({ account_status: 'inactive', cohort_id: null, updated_at: new Date().toISOString() })
+          .eq('id', userId)
+          .select();
+
+        if (updateError) {
+          throw new Error(updateError.message || 'Failed to remove user completely.');
+        }
+
+        if (!updateData || updateData.length === 0) {
+          throw new Error('Action blocked by database security policies (0 rows affected).');
+        }
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-cohort-members'] });
-      queryClient.invalidateQueries({ queryKey: ['cohort-members'] });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['cohort-members'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-cohort-members'] }),
+        queryClient.invalidateQueries({ queryKey: ['metrics'] }),
+      ]);
     },
   });
 

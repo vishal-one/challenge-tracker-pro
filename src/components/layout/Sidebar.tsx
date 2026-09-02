@@ -12,7 +12,12 @@ import {
   Shield,
 } from 'lucide-react';
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  onLinkClick?: () => void;
+  className?: string;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ onLinkClick, className }) => {
   const { role } = useAuth();
 
   const adminLinks = [
@@ -39,6 +44,7 @@ export const Sidebar: React.FC = () => {
         <NavLink
           key={item.path}
           to={item.path}
+          onClick={onLinkClick}
           className={({ isActive }) =>
             `flex items-center gap-3 px-3 py-2.5 rounded font-mono text-xs uppercase tracking-wider transition-all ${
               isActive
@@ -54,7 +60,7 @@ export const Sidebar: React.FC = () => {
     });
 
   return (
-    <aside className="w-64 bg-surface-low border-r border-neutral-border min-h-[calc(100vh-4rem)] p-4 flex flex-col shrink-0">
+    <aside className={className ?? "hidden md:flex w-64 bg-surface-low border-r border-neutral-border min-h-[calc(100vh-4rem)] p-4 flex-col shrink-0"}>
       <div className="space-y-6">
         {role === 'admin' && (
           <div>

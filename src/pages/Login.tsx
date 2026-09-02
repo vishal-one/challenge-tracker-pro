@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Lock, Mail, Terminal, Sparkles } from 'lucide-react';
+import { Lock, Mail, Terminal } from 'lucide-react';
 
 export const Login: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -67,9 +67,6 @@ export const Login: React.FC = () => {
               {isSignUp ? 'Create Workspace Profile' : 'Authenticate Session'}
             </h2>
           </div>
-          <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-violet/10 border border-violet/30 text-violet font-semibold uppercase">
-            Live Supabase
-          </span>
         </div>
 
         {authError && (
@@ -153,7 +150,6 @@ export const Login: React.FC = () => {
             type="submit"
             className="w-full mt-4"
             isLoading={isLoading}
-            rightIcon={<Sparkles className="w-4 h-4" />}
           >
             {isSignUp ? 'Register Account' : 'Authenticate & Launch'}
           </Button>

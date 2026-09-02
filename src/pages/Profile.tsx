@@ -3,10 +3,10 @@ import { useAuth } from '../context/AuthContext';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { Avatar } from '../components/ui/Avatar';
 import {
   User,
   CheckCircle2,
-  Sparkles,
   Github,
   Linkedin,
   Building2,
@@ -127,13 +127,11 @@ export const Profile: React.FC = () => {
 
           {/* Live Avatar Preview */}
           <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded bg-surface-lowest border border-neutral-border/60">
-            <img
-              src={
-                user?.avatar_url ||
-                `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id || 'default'}`
-              }
-              alt="Avatar Preview"
-              className="w-20 h-20 rounded-lg border-2 border-violet/40 object-cover bg-surface shadow-violet-glow/20"
+            <Avatar
+              src={user?.avatar_url}
+              name={displayName || user?.display_name}
+              className="w-20 h-20 rounded-lg border-2 border-violet/40 bg-[#211E26] shadow-violet-glow/20 shrink-0"
+              fallbackClassName="text-xl"
             />
             <div className="space-y-1 text-center sm:text-left">
               <h3 className="font-mono text-sm font-bold text-neutral-txt">
@@ -252,7 +250,6 @@ export const Profile: React.FC = () => {
           <Button
             type="submit"
             isLoading={isUpdating}
-            rightIcon={<Sparkles className="w-4 h-4" />}
           >
             Save Profile Settings
           </Button>

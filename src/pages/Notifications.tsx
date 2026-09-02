@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNotifications } from '../hooks/useNotifications';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Bell, CheckCheck, Check, Clock, Inbox, Loader2 } from 'lucide-react';
+import { Bell, Clock, Inbox, Loader2 } from 'lucide-react';
 
 export const Notifications: React.FC = () => {
   // 1. Safe Hook Destructuring
@@ -24,9 +24,6 @@ export const Notifications: React.FC = () => {
           <h1 className="text-2xl font-mono font-bold uppercase tracking-wider text-neutral-txt flex items-center gap-2">
             NOTIFICATION <span className="text-violet">ALERTS</span>
           </h1>
-          <p className="text-xs font-mono text-neutral-muted mt-1">
-            Realtime updates on assignment dispatches, challenge updates, and cohort metrics
-          </p>
         </div>
 
         <Card className="p-12 flex flex-col items-center justify-center gap-3 text-neutral-muted font-mono text-xs">
@@ -50,9 +47,6 @@ export const Notifications: React.FC = () => {
           <h1 className="text-2xl font-mono font-bold uppercase tracking-wider text-neutral-txt flex items-center gap-2">
             NOTIFICATION <span className="text-violet">ALERTS</span>
           </h1>
-          <p className="text-xs font-mono text-neutral-muted mt-1">
-            Realtime updates on assignment dispatches, challenge updates, and cohort metrics
-          </p>
         </div>
 
         {safeUnreadCount > 0 && (
@@ -61,7 +55,6 @@ export const Notifications: React.FC = () => {
             size="sm"
             onClick={() => markAllAsRead?.mutate?.()}
             isLoading={markAllAsRead?.isPending}
-            leftIcon={<CheckCheck className="w-4 h-4 text-violet" />}
           >
             Mark All As Read ({safeUnreadCount})
           </Button>
@@ -151,7 +144,6 @@ export const Notifications: React.FC = () => {
                       variant="ghost"
                       onClick={() => markAsRead.mutate?.(n.id)}
                       isLoading={Boolean(markAsRead.isPending && markAsRead.variables === n.id)}
-                      leftIcon={<Check className="w-3.5 h-3.5" />}
                     >
                       Read
                     </Button>

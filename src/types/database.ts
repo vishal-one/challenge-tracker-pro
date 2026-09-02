@@ -17,6 +17,7 @@ export interface Cohort {
 
 export interface Profile {
   id: string;
+  user_id?: string;
   role: AppRole;
   account_status: AccountStatus;
   display_name: string;

@@ -3,7 +3,7 @@ import Editor, { OnMount } from '@monaco-editor/react';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
-import { Play, Save, Terminal, Loader2, Sparkles } from 'lucide-react';
+import { Terminal, Loader2 } from 'lucide-react';
 
 const LANGUAGE_OPTIONS = [
   { value: 'typescript', label: 'TypeScript', pistonLang: 'typescript', pistonVersion: '5.0.3' },
@@ -169,7 +169,6 @@ export const CodeWorkspace: React.FC<CodeWorkspaceProps> = ({
               size="sm"
               onClick={handleRunCode}
               isLoading={isRunning}
-              leftIcon={<Play className="w-3.5 h-3.5" />}
             >
               Run Code
             </Button>
@@ -178,7 +177,6 @@ export const CodeWorkspace: React.FC<CodeWorkspaceProps> = ({
               size="sm"
               onClick={handleSaveCode}
               isLoading={isSaving}
-              leftIcon={isSaving ? <Sparkles className="w-3.5 h-3.5 text-black animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             >
               {isSaving ? 'AI is reviewing your code...' : 'Save & Submit Code'}
             </Button>
